@@ -24,12 +24,12 @@ const dmcaLogSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'processed'],
-    default: 'active'
+    enum: ['Active', 'Processed'],
+    default: 'Active'
   }
 });
 
-const DMCALog = mongoose.model('DMCALog', dmcaLogSchema);
+const DMCALog = mongoose.model('logs', dmcaLogSchema);
 
 module.exports = DMCALog;
 
