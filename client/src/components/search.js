@@ -46,7 +46,7 @@ const Search = () => {
           <tr>
             <th>Name</th>
             <th>Publisher</th>
-            <th>DDG Search</th>
+            <th>Search on DuckDuckGo</th>
           </tr>
           </thead>
           <tbody>
@@ -66,7 +66,7 @@ const Search = () => {
                   </td>
                   <td>
                     <button onClick={() => toggleDetails(index)}>
-                      {result.expanded ? 'Collapse' : 'Expand'}
+                      {result.expanded ? 'Hide' : 'Expand'}
                     </button>
                   </td>
                 </tr>
