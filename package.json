@@ -1,0 +1,11 @@
+{
+  "name": "se3316-njina-lab4",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "dev": "(((cd client && npm i) && (npm run build && cd ..)) && (cd server && npm i)) && node index"
+  },
+  "author": "",
+  "license": "ISC"
+}
