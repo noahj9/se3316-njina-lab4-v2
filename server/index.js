@@ -47,6 +47,33 @@ function sanitize(string) { //santizie user input by elminating characters that 
   return string.replace(reg, (match)=>(map[match]));
 }
 
+// Middleware to verify the user's token
+//AI Prompt: given in same AI prompt as the create lists API
+const verifyToken = (req, res, next) => {
+  const token = req.header('Authorization');
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized: Token not provided.' });
+  }
+
+  jwt.verify(token, process.env.JWT_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Unauthorized: Invalid token.' });
+    }
+
+    req.user = decoded;
+    next();
+  });
+};
+
+const checkProperEmailFormat = (email) => {
+  // Basic email format validation
+  //test criteria from: https://stackoverflow.com/questions/46155/how-can-i-validate-an-email-address-in-javascript
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    return res.status(400).send({ message: 'Email not in correct format, try again!' });
+}
+}
+
 // ############ APIS #######################################
 
 //AI PROMPT: write me a backend api (im using node.js) that will allow me to search by name, race, power, publisher and use string-similarity-js to softmatch search terms. the inputs should be sanitized by calling the sanitizeInput function and i should be able to enter a value for each search term and get a list of the corresponding superheroes.
@@ -123,4 +150,106 @@ app.get('/api/policies', async (req, res) => {
   }
 });
 
+// API endpoint to get public superhero lists sorted by lastModified, max 10 results
+//AI PROMPT: based on my lists schema, create me a backend api to get all of the public lists and sort them in order of lastModified, i only want to return 10 max.
+app.get('/api/public-lists', async (req, res) => {
+  try {
+    const publicLists = await SuperheroList.find({ isPublic: true })
+      .sort({ lastModified: -1 }) // Sort in descending order of lastModified
+      .limit(10); // Limit to 10 results
 
+    return res.status(200).json(publicLists);
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// API endpoint to create a new superhero list
+//AI PROMPT: create me an api to create a new superhero list, i want to verify that the user is logged in before they can create a new list
+//the nickname i will get from the users token, the verify token will be required instead of requireAuth. i also need to get the superheroes added to the list and make sure i am saving the ids to the superheros field in the new list
+app.post('/api/create-list', verifyToken, async (req, res) => {
+  const { name, description, superheroes, isPublic } = req.body;
+  const creatorNickname = req.user.nickname; // Get the nickname from the user's token
+
+  try {
+    // Get superhero IDs from their names
+    const listSuperheroIds = await Promise.all(superheroes.map(async (superhero) => {
+      // Find the ID of the superhero from its name
+      const heroId_temp = await Superhero.findOne({ name: superhero.name });
+      return heroId_temp?._id; // Return the ID to be saved to the list
+    }));
+
+    // Create a new superhero list
+    const newList = new SuperheroList({
+      name,
+      description,
+      superheroes: listSuperheroIds,
+      isPublic,
+      creatorNickname
+    });
+
+    // Save the new list to the database
+    await newList.save();
+
+    return res.status(201).json({ message: 'Superhero list created successfully.' });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// get a superhero from the db
+//AI PROMPT: write me an api that accepts an id, looks to see if its a valid superhero, then returns the id of the superhero if its valid
+app.get('/api/getSuperhero/:id', async (req, res) => {
+  const superheroId = parseInt(req.params.id);
+
+  try {
+    const superhero = await Superhero.findOne({ id: superheroId });
+
+    if (superhero) {
+      return res.send(superhero);
+    } else {
+      return res.status(404).json({ message: 'Superhero not found.' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// ##################### LOGIN AND REGISTER API's #############################
+
+// API endpoint for user registration
+//AI PROMPT: create me a backend api that can be used for users to register for an account,
+//they need to provide email, password, nickname for their account
+//we should check to see if the user already exists if not then we should add them to the database
+app.post('/api/register', async (req, res) => {
+  const { email, password, nickname } = req.body;
+
+  checkProperEmailFormat(email);
+
+  try {
+    // Check if the user with the given email already exists
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(409).json({ message: 'User with this email already exists.' });
+    }
+
+    // Create a new user
+    const newUser = new User({
+      email,
+      password,
+      nickname
+    });
+
+    // Save the new user to the database
+    await newUser.save();
+
+    return res.status(201).json({ message: 'User registration successful.' });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
