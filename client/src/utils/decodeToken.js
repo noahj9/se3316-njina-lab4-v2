@@ -1,6 +1,6 @@
 
 const getUserInfoFromToken = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('Newtoken');
   
     if (!token) {
       return null; // Token not found
@@ -25,7 +25,10 @@ const getUserInfoFromToken = () => {
       const decodedToken = parseJwt(token)
   
       // Extract user information from the decoded token
-      const { email, nickname, isVerified, isAdmin } = decodedToken.payload;
+      const email = decodedToken.email;
+      const nickname = decodedToken.nickname;
+      const isVerified = decodedToken.isVerified;
+      const isAdmin = decodedToken.isAdmin;
   
       return {
         email,

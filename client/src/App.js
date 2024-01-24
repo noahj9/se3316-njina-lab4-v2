@@ -28,12 +28,12 @@ function App() {
     }
   }, []);
 
-  return (
+  return ( //add update password, logout
     <div>
       <Search/>
-      <Register/>
-      <Login/>
-      <Verification/>
+      {isLoggedIn ? "" : <Register/>}
+      {isLoggedIn? "" : <Login/> }
+      {isVerified ? "": <Verification/>}
       <PolicyDisplay/>
     </div>
   );

@@ -32,13 +32,12 @@ const AccountVerification = () => {
   };
 
   return (
-    <div>
+    <div class="container">
       <h2>Account Verification</h2>
       <div>
         <label htmlFor="email">Email:</label>
         <input
           type="email"
-          id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -62,3 +61,5 @@ const AccountVerification = () => {
 };
 
 export default AccountVerification;
+
+//AI PROMPT: create me a react component for a user to verify their account. it should be a simple form that accepts the users email and calls the api to generate the verification link when they submit the form. The verification link should then be shown below the form along with a quick message.

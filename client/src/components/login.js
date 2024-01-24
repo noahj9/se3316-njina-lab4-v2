@@ -19,7 +19,7 @@ const LoginForm = () => {
 
       if (response.ok) {
         console.log('Login successful');
-        localStorage.setItem('token', data.token);
+        localStorage.setItem('Newtoken', data.token);
       } else {
         console.error('Login failed:', data.message);
       }
@@ -29,13 +29,12 @@ const LoginForm = () => {
   };
 
   return (
-    <div>
+    <div class="container">
       <h2>Login</h2>
       <div>
         <label htmlFor="email">Email:</label>
         <input
           type="email"
-          id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
