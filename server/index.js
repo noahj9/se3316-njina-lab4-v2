@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const jwt = require('jsonwebtoken');
 
 //import all the schemas for db operations
-//const User = require('./schemas/userSchema.js');
+const User = require('./schemas/userSchema.js');
 //const Review = require('./schemas/reviewSchema.js');
 const Superpower = require('./schemas/superpowerSchema.js');
 const Superhero = require('./schemas/superheroSchema.js');
@@ -248,6 +248,128 @@ app.post('/api/register', async (req, res) => {
     await newUser.save();
 
     return res.status(201).json({ message: 'User registration successful.' });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// API endpoint for user login
+//AI PROMPT: create be a backend login api. when a user tries to login i first want to check if there email and password is valid. if they are valid then i want to check if the user is verified, if they are not verified i want to reject the login and send a message saying to verify their account. if the account is verified then I want to display a login success message, create a jsonwebtoken  (JWT) and store it in their local storage. in this token i want to store the email, nickname, isVerified, isAdmin so that I can access it later.
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  checkProperEmailFormat(email);
+
+  try {
+    // Check if the user with the given email exists
+    const user = await User.findOne({ email });
+
+    if (!user || user.isDisabled) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Check if the entered password is correct
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Invalid email or password' });
+    }
+
+    // Check if the user is verified
+    if (!user.isVerified) {
+      return res.status(403).json({ message: 'Account not verified. Please verify your account.' });
+    }
+
+    // Create a JWT token with user information
+    const token = jwt.sign(
+      {
+        email: user.email,
+        nickname: user.nickname,
+        isVerified: user.isVerified,
+        isAdmin: user.isAdmin
+      },
+      process.env.JWT_KEY,
+      { expiresIn: '12h' } // Token expiration time
+    );
+
+    // Send the token in the response
+    return res.status(200).json({ message: 'Login successful', token });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+
+// API endpoint to generate a verification token
+//AI PROMPT: create me a backend api to generate a verifiction token (jsonwebtoken) for a users account. the api should accept their email, check if their account exists, check if their account is already verified, then generate a token using their email, and append it to a link which will be returned so that i can be displayed to the user in the frontend (i do not need to email it to the user). the token should be stored in the users account in the database under verificationToken field.
+//i need another api that will accept the verification link created by the above api and validate it with the token stored in the database. if it matches then the users verified status should be updated.
+//create me these 2 apis, do not use any other dependencies. use JWT for the token.
+app.post('/api/generateVerificationToken', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if the user with the given email exists
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the user is already verified
+    if (user.isVerified) {
+      return res.status(400).json({ message: 'User is already verified' });
+    }
+
+    // Generate a verification token
+    const verificationToken = jwt.sign(
+      { email },
+      JWT_KEY, // Replace with your actual secret key for JWT signing
+      { expiresIn: '1h' } // Token expiration time
+    );
+
+    // Update the user's verificationToken field in the database
+    user.verificationToken = await bcrypt.hash(verificationToken, 10);
+    await user.save();
+
+    // Append the verification token to a link and return it
+    const verificationLink = `http://${req.get('host')}/api/verifyAccount?token=${verificationToken}`;
+
+    return res.status(200).json({ verificationLink });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// API endpoint to validate verificaiton token
+//AI PROMPT: create me a backend api to generate a verifiction token (jsonwebtoken) for a users account. the api should accept their email, check if their account exists, check if their account is already verified, then generate a token using their email, and append it to a link which will be returned so that i can be displayed to the user in the frontend (i do not need to email it to the user). the token should be stored in the users account in the database under verificationToken field.
+//i need another api that will accept the verification link created by the above api and validate it with the token stored in the database. if it matches then the users verified status should be updated.
+//create me these 2 apis, do not use any other dependencies. use JWT for the token.
+app.post('/api/verifyAccount', async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    // Check if the user with the given verification token exists
+    const user = await User.findOne({ verificationToken: await bcrypt.hash(token, 10) });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Verify the JWT token
+    jwt.verify(token, JWT_KEY, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: 'Invalid verification token' });
+      }
+
+      // Update the user's verified status in the database
+      user.isVerified = true;
+      user.save();
+
+      return res.status(200).json({ message: 'Account verified successfully' });
+    });
   } catch (error) {
     console.error('Error:', error);
     return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
