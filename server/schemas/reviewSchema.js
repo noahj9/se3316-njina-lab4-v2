@@ -9,10 +9,15 @@ const reviewSchema = new mongoose.Schema({
   },
   comment: {
     type: String,
-    required: true
+    required: false
   },
   createdBy: {
     type: String,
+    required: true
+  },
+  superheroList: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SuperheroList',
     required: true
   },
   createdAt: {
@@ -28,6 +33,7 @@ const reviewSchema = new mongoose.Schema({
 const Review = mongoose.model('Review', reviewSchema);
 
 module.exports = Review;
+
 
 //AI PROMPT
 //create me another schema for reviews: reviewSchema. it should have a rating which is between 0 and 5 required, a comment, createdBy required, createdAt which is a date (default is current date), and aboolean isHidden with default false

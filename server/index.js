@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 
 //import all the schemas for db operations
 const User = require('./schemas/userSchema.js');
-//const Review = require('./schemas/reviewSchema.js');
+const Review = require('./schemas/reviewSchema.js');
 const Superpower = require('./schemas/superpowerSchema.js');
 const Superhero = require('./schemas/superheroSchema.js');
 const SuperheroList = require('./schemas/superheroListSchema.js');
@@ -624,4 +624,91 @@ app.get('/api/getSuperheroPowers/:listId', async (req, res) => {
   }
 });
 
-//use the new api you made above to display the true super powers for each superhero in the list, give me the full react component with the new changes
+// API endpoint to update a superheor list
+// PROMPT: create me a backend api that will be used to update all fields of a list. it should check that the user is the creator of the list they are trying to update. this is the schema for a list:
+app.put('/api/secure/updateSuperheroList/:listId', verifyToken, async (req, res) => {
+  try {
+    const listId = req.params.listId;
+    const { name, description, isPublic, averageRating } = req.body;
+    const creatorNickname = req.user.nickname;
+
+    // Check if the user is the creator of the list
+    const superheroList = await SuperheroList.findById(listId);
+
+    if (!superheroList) {
+      return res.status(404).json({ message: 'Superhero list not found' });
+    }
+
+    if (superheroList.creatorNickname !== creatorNickname) {
+      return res.status(403).json({ message: 'Unauthorized: You are not the creator of this list' });
+    }
+
+    // Update superhero list fields
+    superheroList.name = name || superheroList.name;
+    superheroList.description = description || superheroList.description;
+    superheroList.isPublic = isPublic !== undefined ? isPublic : superheroList.isPublic;
+    superheroList.lastModified = new Date();
+    superheroList.averageRating = averageRating !== undefined ? averageRating : superheroList.averageRating;
+
+    // Save the updated superhero list
+    const updatedSuperheroList = await superheroList.save();
+
+    res.status(200).json(updatedSuperheroList);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// API endpoint to add a review for a superhero list
+// AI PROMPT: rite me a backend api to create a review for a list. requirements:
+//Add a review with a rating (required) and a comment (optional) to any public list. 
+// API endpoint to add a review for a superhero list
+app.post('/api/secure/addReview/:listId', verifyToken, async (req, res) => {
+  try {
+    const listId = req.params.listId;
+    const { rating, comment } = req.body;
+    const createdBy = req.user.nickname;
+
+    // Check if the superhero list exists and is public
+    const superheroList = await SuperheroList.findOne({ _id: listId, isPublic: true });
+
+    if (!superheroList) {
+      return res.status(404).json({ message: 'Public superhero list not found' });
+    }
+
+    // Create a new review
+    const newReview = new Review({
+      rating,
+      comment,
+      createdBy,
+      superheroList: listId
+    });
+
+    // Save the review
+    const savedReview = await newReview.save();
+
+    // Add the review to the superhero list
+    superheroList.reviews.push(savedReview);
+    await superheroList.save();
+
+    res.status(201).json(savedReview);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// API endpoint to get public superhero lists
+app.get('/api/publicSuperheroLists', async (req, res) => {
+  try {
+    const publicSuperheroLists = await SuperheroList.find({ isPublic: true })
+      .sort({ lastModified: -1 })
+      .populate('superheroes', 'name Publisher'); // Adjust the population fields as needed
+
+    res.status(200).json(publicSuperheroLists);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});

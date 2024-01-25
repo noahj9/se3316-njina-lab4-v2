@@ -100,3 +100,4 @@ const PublicHeroLists = () => {
 };
 
 export default PublicHeroLists;
+//use the new api you made above to display the true super powers for each superhero in the list, give me the full react component with the new changes

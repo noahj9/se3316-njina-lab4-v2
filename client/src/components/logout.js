@@ -25,6 +25,7 @@ const [nickname, setNickname] = useState(false);
     try {
         localStorage.removeItem('Newtoken');
         console.log("token removed from local store");
+        alert("Logout completed");
     } catch (error) {
       console.error('Error:', error);
     }

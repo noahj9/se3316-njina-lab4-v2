@@ -15,6 +15,8 @@ import CreateSuperheroList from './components/createSuperheroList.js';
 import ViewPrivateLists from './components/viewPrivateLists.js';
 import ViewPublicLists from './components/viewPublicLists.js';
 import DeleteList from './components/deleteList.js';
+import UpdateList from './components/updateList.js';
+import CreateReview from './components/createReview.js';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -45,7 +47,9 @@ function App() {
       <CreateSuperheroList/>
       <ViewPrivateLists/>
       <ViewPublicLists/>
+      <UpdateList/>
       <DeleteList/>
+      <CreateReview/>
       <PolicyDisplay/>
     </div>
   );
