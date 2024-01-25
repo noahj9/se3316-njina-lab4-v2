@@ -51,9 +51,9 @@ const DeleteSuperheroList = () => {
       <label>Select a superhero list:</label>
       <select value={selectedList} onChange={(e) => setSelectedList(e.target.value)}>
         <option value="">Select a list</option>
-        {lists.map(list => (
+        {lists.length>0 ? lists.map(list => (
           <option key={list._id} value={list._id}>{list.name}</option>
-        ))}
+        )) : ""}
       </select>
       <button onClick={handleDeleteClick}>Delete Selected List</button>
     </div>

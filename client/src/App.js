@@ -13,6 +13,7 @@ import Logout from './components/logout.js';
 import ChangePassword from './components/changePassword.js';
 import CreateSuperheroList from './components/createSuperheroList.js';
 import ViewPrivateLists from './components/viewPrivateLists.js';
+import ViewPublicLists from './components/viewPublicLists.js';
 import DeleteList from './components/deleteList.js';
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
       <ChangePassword/>
       <CreateSuperheroList/>
       <ViewPrivateLists/>
+      <ViewPublicLists/>
       <DeleteList/>
       <PolicyDisplay/>
     </div>

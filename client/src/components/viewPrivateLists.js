@@ -3,13 +3,14 @@ import React, { useState, useEffect } from 'react';
 const UserLists = () => {
   const [lists, setLists] = useState([]);
   const [selectedList, setSelectedList] = useState(null);
+  const token = localStorage.getItem('Newtoken');
 
   useEffect(() => {
     // Fetch user's superhero lists
     fetch('/api/secure/getUserSuperheroLists', {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('Newtoken')}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then(response => response.json())
@@ -23,7 +24,7 @@ const UserLists = () => {
       const response = await fetch(`/api/secure/getSuperheroList/${listId}`, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('Newtoken')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -45,11 +46,11 @@ const UserLists = () => {
         <option value="" disabled selected>
           Select a list
         </option>
-        {lists.map(list => (
+        {lists.length>0 ? lists.map(list => (
           <option key={list._id} value={list._id}>
             {list.name}
           </option>
-        ))}
+        )) : ""}
       </select>
 
       {selectedList && (
@@ -76,5 +77,5 @@ const UserLists = () => {
 };
 
 export default UserLists;
-
+//AI PROMPT
 //create me a react component that can be used for a user to view there lists. i want to show all the lists in a dropdown menu and allow the user to select one. when they select one the info for that list will be shown below (name, description, lastModified, visibility, average rating, and a list of superheroes along with their name and publisher. write me a new api to handle the displaying of the info once the list is selected. 

@@ -564,3 +564,64 @@ app.delete('/api/secure/deleteSuperheroList/:listId', verifyToken, async (req, r
     return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
   }
 });
+
+// API to get public hero lists
+// AI PROMPT: create me a backend api and react component to display public lists and the information. the requirements for this component and backend are detailed below.
+//List of public hero lists (up to 10) ordered by last modified date and showing name, creator’s nickname, number of heroes in the list and average rating.
+//Ability to expand each hero list to show the description and the list of heroes each showing the name, power and publisher.
+//Ability to display additional information for each hero in a public list.
+app.get('/api/publicHeroLists', async (req, res) => {
+  try {
+    const publicHeroLists = await SuperheroList.find({ isPublic: true })
+      .sort({ lastModified: -1 })
+      .limit(10)
+      .populate('superheroes', ['name', 'Publisher', 'Race', 'Alignment', 'Eye color', 'Gender', 'Hair color', 'Skin color', 'Weight']);
+
+    return res.status(200).json(publicHeroLists);
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// API endpoint to get true superhero powers by name
+//AI PROMPT: write me an api that will get the true superhero powers for a given superhero based on name. it needs to take the name, search the superpowers schema, and return a list of the true powers.
+app.get('/api/getSuperheroPowers/:listId', async (req, res) => {
+  try {
+    const superheroList = req.params.listId;
+
+    // Find the superhero powers by name in the Superpower schema
+    const superheroPowers = await SuperheroList.findById(superheroList).populate('superheroes');
+
+    if (!superheroPowers) {
+      return res.status(404).json({ message: 'Superhero not found in the Superpower schema' });
+    }
+
+    const truePowers = await Promise.all(
+      superheroPowers.superheroes.map(async (superhero) => {
+        const superpower = await Superpower.findOne({ hero_names: superhero.name });
+      
+        const powers = superpower
+          ? Object.keys(superpower.toObject())
+              .filter(key => superpower[key] === "True" && key !== '_id' && key !== 'hero_names')
+          : [];
+
+        return {
+          name: superhero.name,
+          powers: powers
+        };
+      })
+    );
+
+    if (truePowers.length > 0) {
+      return res.status(200).json(truePowers);
+    } else {
+      return res.status(404).json({ message: 'No superheroes found in list!' }); //otherwise empty, error
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+//use the new api you made above to display the true super powers for each superhero in the list, give me the full react component with the new changes
