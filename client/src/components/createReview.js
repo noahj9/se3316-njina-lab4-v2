@@ -48,7 +48,7 @@ const CreateReview = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // Replace with your actual access token
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ rating, comment }),
       });
@@ -57,15 +57,13 @@ const CreateReview = () => {
 
       if (response.ok) {
         console.log('Review created successfully:', data);
-        alert("Review created successfully");
+        alert("Review created successfully")
       } else {
         console.error('Error:', data.message);
-        alert("Error:", data.message);
         // Handle error
       }
     } catch (error) {
       console.error('Error:', error);
-      alert("Error:", data.message);
     }
   };
 

@@ -325,8 +325,8 @@ app.post('/api/generateVerificationToken', async (req, res) => {
     // Generate a verification token
     const verificationToken = jwt.sign(
       { email },
-      process.env.JWT_KEY, // Replace with your actual secret key for JWT signing
-      { expiresIn: '1h' } // Token expiration time
+      process.env.JWT_KEY,
+      { expiresIn: '1h' }
     );
 
     // Update the user's verificationToken field in the database
@@ -704,11 +704,40 @@ app.get('/api/publicSuperheroLists', async (req, res) => {
   try {
     const publicSuperheroLists = await SuperheroList.find({ isPublic: true })
       .sort({ lastModified: -1 })
-      .populate('superheroes', 'name Publisher'); // Adjust the population fields as needed
+      .populate('superheroes', 'name Publisher');
 
     res.status(200).json(publicSuperheroLists);
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// API endpoint to get reviews for a given superhero list
+//AI PROMPT: write me a backend api that will return all the reviews for a given list
+app.get('/api/getReviews/:listId', async (req, res) => {
+  try {
+    const listId = req.params.listId;
+
+    // Check if the superhero list exists
+    const superheroList = await SuperheroList.findById(listId);
+
+    if (!superheroList) {
+      return res.status(404).json({ message: 'Superhero list not found' });
+    }
+
+    // Check if the superhero list is public
+    if (!superheroList.isPublic) {
+      return res.status(403).json({ message: 'Unauthorized: Reviews can only be retrieved for public lists' });
+    }
+
+    // Find reviews for the given superhero list
+    const reviews = await Review.find({ superheroList: listId, isHidden: false })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });

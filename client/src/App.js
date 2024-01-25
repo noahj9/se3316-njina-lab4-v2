@@ -17,6 +17,7 @@ import ViewPublicLists from './components/viewPublicLists.js';
 import DeleteList from './components/deleteList.js';
 import UpdateList from './components/updateList.js';
 import CreateReview from './components/createReview.js';
+import ViewReview from './components/showReviews.js';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -50,6 +51,7 @@ function App() {
       <UpdateList/>
       <DeleteList/>
       <CreateReview/>
+      <ViewReview/>
       <PolicyDisplay/>
     </div>
   );
