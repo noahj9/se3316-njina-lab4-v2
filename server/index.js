@@ -420,10 +420,10 @@ app.post('/api/secure/createSuperheroList', verifyToken, async (req, res) => {
     // Check if the superhero list with the given name already exists
     const existingList = await SuperheroList.findOne({ name });
 
-    const user = User.findOne({ email });
-    if (user.superheroList.length >= 20){
-      return res.status(400).json({ message: 'User Already has 20 superhero lists'});
-    }
+    // const user = User.findOne({ email });
+    // if (user.superheroList.length && user.superheroList.length >= 20){
+    //   return res.status(400).json({ message: 'User Already has 20 superhero lists'});
+    // }
 
     if (existingList) {
       return res.status(400).json({ message: 'Superhero list with this name already exists' });
@@ -541,3 +541,26 @@ app.get('/api/secure/getSuperheroList/:listId', verifyToken, async (req, res) =>
   }
 });
 
+// API endpoint to delete a superhero list
+// AI PROMPT: create me a api to delete a list. the api should check that the user is the creator of the list they are trying to delete. 
+app.delete('/api/secure/deleteSuperheroList/:listId', verifyToken, async (req, res) => {
+  try {
+    const listId = req.params.listId;
+    const creatorNickname = req.user.nickname;
+
+    // Find the specified superhero list
+    const superheroList = await SuperheroList.findOne({ _id: listId, creatorNickname });
+
+    if (!superheroList) {
+      return res.status(404).json({ message: 'Superhero list not found or you do not have permission to delete it' });
+    }
+
+    // Delete the superhero list
+    await SuperheroList.findByIdAndDelete({ _id: listId });
+
+    return res.status(200).json({ message: 'Superhero list deleted successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});

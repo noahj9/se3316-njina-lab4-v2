@@ -13,6 +13,7 @@ import Logout from './components/logout.js';
 import ChangePassword from './components/changePassword.js';
 import CreateSuperheroList from './components/createSuperheroList.js';
 import ViewPrivateLists from './components/viewPrivateLists.js';
+import DeleteList from './components/deleteList.js';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -42,6 +43,7 @@ function App() {
       <ChangePassword/>
       <CreateSuperheroList/>
       <ViewPrivateLists/>
+      <DeleteList/>
       <PolicyDisplay/>
     </div>
   );
