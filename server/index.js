@@ -9,7 +9,7 @@ const User = require('./schemas/userSchema.js');
 //const Review = require('./schemas/reviewSchema.js');
 const Superpower = require('./schemas/superpowerSchema.js');
 const Superhero = require('./schemas/superheroSchema.js');
-//const SupherheroLists = require('./schemas/supherheroListSchema.js');
+const SuperheroList = require('./schemas/superheroListSchema.js');
 const PrivacyPolicies = require('./schemas/privacyPoliciesSchema.js');
 //const Logs = require('./schemas/dmcaLogSchema.js');
 
@@ -50,7 +50,7 @@ function sanitize(string) { //santizie user input by elminating characters that 
 // Middleware to verify the user's token
 //AI Prompt: given in same AI prompt as the create lists API
 const verifyToken = (req, res, next) => {
-  const token = req.header('Authorization');
+  const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
     return res.status(401).json({ message: 'Unauthorized: Token not provided.' });
@@ -370,6 +370,108 @@ app.get('/api/verifyAccount', async (req, res) => {
 
       return res.status(200).json({ message: 'Account verified successfully' });
     });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// API endpoint for a user to change their password
+//AI PROMPT: create me a backend api for a user to change their password
+app.post('/api/secure/changePassword', verifyToken, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const email = req.user.email;
+
+  try {
+    // Check if the user with the given email exists
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the entered current password is correct
+    const isPasswordValid = await user.comparePassword(currentPassword);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Incorrect current password' });
+    }
+
+    // Update the user's password in the database
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// API endpoint to create a new superhero list
+//AI PROMPT: create me an api to create a new superhero list. this is the schema for a superheroList:
+//reviews will be added to the list through a separate api so that doesn't need to be included in this api.
+app.post('/api/secure/createSuperheroList', verifyToken, async (req, res) => {
+  const { name, description, superheroes, isPublic } = req.body;
+  const creatorNickname = req.user.nickname;
+
+  try {
+    // Check if the superhero list with the given name already exists
+    const existingList = await SuperheroList.findOne({ name });
+
+    if (existingList) {
+      return res.status(400).json({ message: 'Superhero list with this name already exists' });
+    }
+
+    //get superheroes added to list and save them in new object in the database
+    const list_superheroIds = await Promise.all(superheroes.map(async (superhero) => {
+      //find the id of the superhro from its name
+      const heroId_temp = await Superhero.findOne({ name: superhero.name });
+      return heroId_temp?._id; //return the id to be saved to the list
+  }));
+
+    // Create a new superhero list
+    const newSuperheroList = new SuperheroList({
+      name,
+      description,
+      superheroes: list_superheroIds,
+      isPublic,
+      creatorNickname,
+    });
+
+    // Save the new superhero list to the database
+    await newSuperheroList.save();
+
+    return res.status(201).json({ message: 'Superhero list created successfully' });
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+
+// API endpoint to add a superhero to the list
+//AI PROMPT: create me an api to add a superhero to a list
+app.get('/api/secure/addSuperhero/:id', async (req, res) => {
+  const addSuperheroId = parseInt(req.params.id);
+  const addSuperhero = await Superhero.findOne({id: addSuperheroId});
+
+  if (addSuperhero) {
+      res.send(addSuperhero);
+  } else {
+      res.status(404).send({ message: 'Superhero not found, couldnt be added to list' });
+  }
+});
+
+// API endpoint to get all superhero lists created by a user
+// create me a api to get all the lists that a user has created
+app.get('/api/secure/getUserSuperheroLists', verifyToken, async (req, res) => {
+  try {
+    const creatorNickname = req.user.nickname;
+
+    // Find all superhero lists created by the user
+    const userSuperheroLists = await SuperheroList.find({ creatorNickname });
+
+    return res.status(200).json(userSuperheroLists);
   } catch (error) {
     console.error('Error:', error);
     return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
