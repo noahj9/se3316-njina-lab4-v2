@@ -824,3 +824,71 @@ app.put('/api/admin/updateUserStatus/:userId', verifyToken, async (req, res) => 
     return res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
+// API endpoint to mark a review as hidden or clear the "hidden" flag (admin only)
+// AI PROMPT: write me a backend api for this: Ability to mark a review as hidden or clear the “hidden” flag if set.
+app.put('/api/admin/updateReviewStatus/:reviewId', verifyToken, async (req, res) => {
+  try {
+    const reviewId = req.params.reviewId;
+    const isAdmin = req.user.isAdmin;
+
+    // Check if the user is an admin
+    if (!isAdmin) {
+      return res.status(403).json({ message: 'Unauthorized: Admin access required' });
+    }
+
+    // Find the review by ID
+    const reviewToUpdate = await Review.findById(reviewId);
+
+    if (!reviewToUpdate) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    // Toggle the "hidden" flag
+    reviewToUpdate.isHidden = !reviewToUpdate.isHidden;
+
+    // Save the updated review
+    const updatedReview = await reviewToUpdate.save();
+
+    // Optionally, you can update the corresponding superhero list's reviews array if necessary
+    // For example, if the review is associated with a superhero list
+    if (reviewToUpdate.superheroList) {
+      const superheroList = await SuperheroList.findById(reviewToUpdate.superheroList);
+
+      if (superheroList) {
+        const updatedReviews = superheroList.reviews.map((review) => {
+          if (review._id.toString() === reviewId) {
+            return updatedReview;
+          }
+          return review;
+        });
+
+        superheroList.reviews = updatedReviews;
+        await superheroList.save();
+      }
+    }
+
+    res.status(200).json(updatedReview);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// API endpoint to get all reviews
+app.get('/api/admin/getAllReviews', verifyToken, async (req, res) => {
+  try {
+    // Check if the user is an admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Unauthorized: Only admins can access this function' });
+    }
+
+    // Retrieve all reviews
+    const allReviews = await Review.find();
+
+    res.status(200).json(allReviews);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});

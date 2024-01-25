@@ -20,6 +20,7 @@ import CreateReview from './components/createReview.js';
 import ViewReview from './components/showReviews.js';
 import GrantAdmin from './components/grantAdmin.js';
 import UserStatus from './components/userStatus.js';
+import HideReview from './components/hideReview.js';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -58,6 +59,7 @@ function App() {
       {/* admin stuff */}
       <GrantAdmin/>
       <UserStatus/>
+      <HideReview/>
 
 
       <PolicyDisplay/>
