@@ -42,26 +42,46 @@ function App() {
 
   return ( //add update password, logout
     <div>
+      <div class="container">
+        <h2>Welcome to the Superhero Database</h2>
+        <p>About this page: you can create superhero lists, explore superhero's, leave reviews. Have fun!</p>
+      </div>
       <Search/>
       {isLoggedIn ? "" : <Register/>}
       {isLoggedIn? "" : <Login/> }
       {isVerified ? "": <Verification/>}
       {/* logged in stuff */}
-      <Logout/>
-      <ChangePassword/>
-      <CreateSuperheroList/>
-      <ViewPrivateLists/>
+      {isLoggedIn ? <Logout/> : ""}
+      {isLoggedIn ? <ChangePassword/> : ""}
+      
       <ViewPublicLists/>
-      <UpdateList/>
-      <DeleteList/>
-      <CreateReview/>
-      <ViewReview/>
+
+      {isLoggedIn ? <CreateSuperheroList/> : ""}
+      {isLoggedIn ? <ViewPrivateLists/> : ""}
+      {isLoggedIn ? <UpdateList/> : ""}
+      {isLoggedIn ? <DeleteList/> : ""}
+      {isLoggedIn ? <CreateReview/>: ""}
+      {isLoggedIn ? <ViewReview/> : ""}
       {/* admin stuff */}
+      {isAdmin ?
+      <div>
+      <div class="container">
+      <h3>Admin Panel</h3>
       <GrantAdmin/>
       <UserStatus/>
       <HideReview/>
-
-
+      </div> 
+      <div class="container">
+        <h3>DMCA Takedown Procedure</h3>
+        <ol>
+          <li>Upon receipt of a dispute, use the log creation tool to document the violation</li>
+          <li>Send notice to both involved parties and await notice from legal. Hide the reviews that are in violation</li>
+          <li>If found to be a violation, hide the reviews, disable the user account, using the above provided tools in the admin panels.</li>
+          <li>Keep log records stored in database for future records if necessary.</li>
+        </ol>
+      </div>
+      </div>
+      : ""}
       <PolicyDisplay/>
     </div>
   );
