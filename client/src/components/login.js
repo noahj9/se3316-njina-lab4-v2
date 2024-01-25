@@ -21,6 +21,7 @@ const LoginForm = () => {
         console.log('Login successful');
         localStorage.setItem('Newtoken', data.token);
       } else {
+        alert('Login failed:', data.message);
         console.error('Login failed:', data.message);
       }
     } catch (error) {

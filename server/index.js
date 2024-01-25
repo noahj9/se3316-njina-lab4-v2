@@ -270,7 +270,7 @@ app.post('/api/login', async (req, res) => {
     }
 
     // Check if the entered password is correct
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' });
@@ -325,12 +325,12 @@ app.post('/api/generateVerificationToken', async (req, res) => {
     // Generate a verification token
     const verificationToken = jwt.sign(
       { email },
-      JWT_KEY, // Replace with your actual secret key for JWT signing
+      process.env.JWT_KEY, // Replace with your actual secret key for JWT signing
       { expiresIn: '1h' } // Token expiration time
     );
 
     // Update the user's verificationToken field in the database
-    user.verificationToken = await bcrypt.hash(verificationToken, 10);
+    user.verificationToken = verificationToken;
     await user.save();
 
     // Append the verification token to a link and return it
@@ -347,19 +347,19 @@ app.post('/api/generateVerificationToken', async (req, res) => {
 //AI PROMPT: create me a backend api to generate a verifiction token (jsonwebtoken) for a users account. the api should accept their email, check if their account exists, check if their account is already verified, then generate a token using their email, and append it to a link which will be returned so that i can be displayed to the user in the frontend (i do not need to email it to the user). the token should be stored in the users account in the database under verificationToken field.
 //i need another api that will accept the verification link created by the above api and validate it with the token stored in the database. if it matches then the users verified status should be updated.
 //create me these 2 apis, do not use any other dependencies. use JWT for the token.
-app.post('/api/verifyAccount', async (req, res) => {
+app.get('/api/verifyAccount', async (req, res) => {
   const { token } = req.query;
 
   try {
     // Check if the user with the given verification token exists
-    const user = await User.findOne({ verificationToken: await bcrypt.hash(token, 10) });
+    const user = await User.findOne({ verificationToken: token });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Verify the JWT token
-    jwt.verify(token, JWT_KEY, (err, decoded) => {
+    jwt.verify(token, process.env.JWT_KEY, (err, decoded) => {
       if (err) {
         return res.status(401).json({ message: 'Invalid verification token' });
       }

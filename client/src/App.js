@@ -9,6 +9,7 @@ import PolicyDisplay from './components/policyDisplay.js';
 import getUserInfoFromToken from './utils/decodeToken.js';
 import Verification from './components/verification.js';
 import Login from './components/login.js';
+import Logout from './components/logout.js';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -34,6 +35,7 @@ function App() {
       {isLoggedIn ? "" : <Register/>}
       {isLoggedIn? "" : <Login/> }
       {isVerified ? "": <Verification/>}
+      <Logout/>
       <PolicyDisplay/>
     </div>
   );

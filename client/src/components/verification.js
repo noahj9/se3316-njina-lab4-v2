@@ -46,9 +46,9 @@ const AccountVerification = () => {
         <button onClick={handleGenerateVerificationLink}>Generate Verification Link</button>
       </div>
       <div>
-        <p>{message}</p>
         {verificationLink && (
           <div>
+            <p>Hi, Thanks for registering your account on the superhero database. Please paste the below verification link in your browser to verify your account.</p>
             <p>Verification Link:</p>
             <a href={verificationLink} target="_blank" rel="noopener noreferrer">
               {verificationLink}
