@@ -741,3 +741,86 @@ app.get('/api/getReviews/:listId', async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
+// API endpoint to grant admin privileges to another user
+//AI PROMPT: create me an api that can be used for an admin to grant admin priviliges to another user. this api should check to make sure that the caller is an admin by checking the token. 
+app.post('/api/admin/grantAdminPrivileges/:userId', verifyToken, async (req, res) => {
+    const isAdmin = req.user.isAdmin;
+  try {
+    const { userId } = req.params;
+
+
+    // Check if the user to be granted admin privileges exists
+    const userToGrantAdmin = await User.findById(userId);
+
+    if (!userToGrantAdmin) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!isAdmin) {
+      return res.status(409).json({ message: 'Admin protected function' });
+    }
+
+    // Grant admin privileges
+    userToGrantAdmin.isAdmin = true;
+
+    // Save the updated user
+    const updatedUser = await userToGrantAdmin.save();
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// API endpoint to get all users
+app.get('/api/getAllUsers', verifyToken, async (req, res) => {
+  try {
+    // Check if the user making the request is an admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Unauthorized: You are not an admin' });
+    }
+
+    // Fetch all users
+    const allUsers = await User.find({}, 'email'); // Modify the projection as needed
+
+    return res.status(200).json(allUsers);
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// API endpoint to mark a user as "disabled" or clear the "disabled" flag
+// AI PROMPT: make me a backend api for this: Ability to mark a user as “disabled” or clear the “disabled” flag if set:
+//this should only be doable by admins.
+app.put('/api/admin/updateUserStatus/:userId', verifyToken, async (req, res) => {
+  try {
+    // Check if the user making the request is an admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Unauthorized: You are not an admin' });
+    }
+
+    const { userId } = req.params;
+    const { isDisabled } = req.body;
+
+    // Find the user by ID
+    const userToUpdate = await User.findById(userId);
+
+    if (!userToUpdate) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update the "disabled" status
+    userToUpdate.isDisabled = isDisabled;
+
+    // Save the updated user
+    const updatedUser = await userToUpdate.save();
+
+    return res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});

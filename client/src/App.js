@@ -18,6 +18,8 @@ import DeleteList from './components/deleteList.js';
 import UpdateList from './components/updateList.js';
 import CreateReview from './components/createReview.js';
 import ViewReview from './components/showReviews.js';
+import GrantAdmin from './components/grantAdmin.js';
+import UserStatus from './components/userStatus.js';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -43,6 +45,7 @@ function App() {
       {isLoggedIn ? "" : <Register/>}
       {isLoggedIn? "" : <Login/> }
       {isVerified ? "": <Verification/>}
+      {/* logged in stuff */}
       <Logout/>
       <ChangePassword/>
       <CreateSuperheroList/>
@@ -52,6 +55,11 @@ function App() {
       <DeleteList/>
       <CreateReview/>
       <ViewReview/>
+      {/* admin stuff */}
+      <GrantAdmin/>
+      <UserStatus/>
+
+
       <PolicyDisplay/>
     </div>
   );

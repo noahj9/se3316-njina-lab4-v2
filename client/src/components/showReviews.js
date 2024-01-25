@@ -84,3 +84,5 @@ const ReviewList = () => {
 };
 
 export default ReviewList;
+//AI PROMPT: write me a frontend react component that will have a dropdown for the user to select a public list. once the list is selected it will show all of the reviews below.
+
