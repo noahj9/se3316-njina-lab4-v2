@@ -414,10 +414,16 @@ app.post('/api/secure/changePassword', verifyToken, async (req, res) => {
 app.post('/api/secure/createSuperheroList', verifyToken, async (req, res) => {
   const { name, description, superheroes, isPublic } = req.body;
   const creatorNickname = req.user.nickname;
+  const email = req.user.email;
 
   try {
     // Check if the superhero list with the given name already exists
     const existingList = await SuperheroList.findOne({ name });
+
+    const user = User.findOne({ email });
+    if (user.superheroList.length >= 20){
+      return res.status(400).json({ message: 'User Already has 20 superhero lists'});
+    }
 
     if (existingList) {
       return res.status(400).json({ message: 'Superhero list with this name already exists' });
@@ -477,3 +483,61 @@ app.get('/api/secure/getUserSuperheroLists', verifyToken, async (req, res) => {
     return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
   }
 });
+
+// Helper function to fetch detailed information for each superhero
+const getSuperheroDetails = async (superheroId) => {
+  try {
+    const superhero = await Superhero.findOne({ _id: superheroId });
+
+    if (superhero) {
+      return {
+        _id: superhero._id,
+        name: superhero.name,
+        Publisher: superhero.Publisher,
+      };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error('Error fetching superhero details:', error);
+    return null;
+  }
+};
+
+// API endpoint to get detailed information for a specific superhero list
+//AI PROMPT: write me the api to fetch information for the selected list
+// the superheroes field contains an array of the mongodb object id's of each superhero. i would need to get all the publisher and superhero name using this inside the above api and return it.
+app.get('/api/secure/getSuperheroList/:listId', verifyToken, async (req, res) => {
+  try {
+    const listId = req.params.listId;
+    const creatorNickname = req.user.nickname;
+
+    // Find the specified superhero list
+    const superheroList = await SuperheroList.findOne({ _id: listId, creatorNickname });
+
+    if (!superheroList) {
+      return res.status(404).json({ message: 'Superhero list not found' });
+    }
+
+    // Fetch detailed information for each superhero in the list
+    const superheroDetailsPromises = superheroList.superheroes.map(superheroId => getSuperheroDetails(superheroId));
+    const superheroDetails = await Promise.all(superheroDetailsPromises);
+
+    // Include additional details as needed
+    const detailedList = {
+      _id: superheroList._id,
+      name: superheroList.name,
+      description: superheroList.description,
+      lastModified: superheroList.lastModified,
+      isPublic: superheroList.isPublic,
+      averageRating: superheroList.averageRating,
+      superheroes: superheroDetails.filter(superhero => superhero !== null), // Remove null values
+    };
+
+    return res.status(200).json(detailedList);
+  } catch (error) {
+    console.error('Error:', error);
+    return res.status(500).json({ message: 'Server Error Encountered', error: error.message });
+  }
+});
+

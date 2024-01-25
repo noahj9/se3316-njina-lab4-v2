@@ -10,6 +10,9 @@ import getUserInfoFromToken from './utils/decodeToken.js';
 import Verification from './components/verification.js';
 import Login from './components/login.js';
 import Logout from './components/logout.js';
+import ChangePassword from './components/changePassword.js';
+import CreateSuperheroList from './components/createSuperheroList.js';
+import ViewPrivateLists from './components/viewPrivateLists.js';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -36,6 +39,9 @@ function App() {
       {isLoggedIn? "" : <Login/> }
       {isVerified ? "": <Verification/>}
       <Logout/>
+      <ChangePassword/>
+      <CreateSuperheroList/>
+      <ViewPrivateLists/>
       <PolicyDisplay/>
     </div>
   );
