@@ -11,7 +11,7 @@ const Superpower = require('./schemas/superpowerSchema.js');
 const Superhero = require('./schemas/superheroSchema.js');
 const SuperheroList = require('./schemas/superheroListSchema.js');
 const PrivacyPolicies = require('./schemas/privacyPoliciesSchema.js');
-//const Logs = require('./schemas/dmcaLogSchema.js');
+const Log = require('./schemas/dmcaLogSchema.js');
 
 require("dotenv").config(); //environment variables import
 
@@ -892,3 +892,43 @@ app.get('/api/admin/getAllReviews', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
+// API endpoint to create a DMCA log entry
+// AI PROMPT: write me a backend api to create a dmca log, this is the requirements:
+//For each review, a mechanism to create a DMCA entry to log requests, notices, and disputes. E.g. Set-up a log entry in a database with a unique “request ID” for entering “date request received” (date), “date notice sent” (date), “date dispute received” (date), “notes” (text)  and “Status” (Active/Processed) for each review.
+app.post('/api/admin/createDMCALog', verifyToken, async (req, res) => {
+  try {
+    // Extract required information from the request body
+    const { reviewId, receivedDate, noticeSentDate, disputeReceivedDate, notes, status } = req.body;
+
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Unauthorized: Only admins can access this function' });
+    }
+
+    // Check if the required fields are provided
+    if (!reviewId || !receivedDate || !notes || !status) {
+      return res.status(400).json({ message: 'Bad Request: All fields are required' });
+    }
+
+    // Create a new DMCA log entry
+    const newDMCALogEntry = new Log({
+      reviewId,
+      receivedDate,
+      noticeSentDate,
+      disputeReceivedDate,
+      notes,
+      status
+    });
+
+    // Save the new DMCA log entry to the database
+    await newDMCALogEntry.save();
+
+    res.status(201).json(newDMCALogEntry);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
+//AI PROMPT INFO: https://chat.openai.com/share/867025a7-b362-4a0b-9bd0-10bbb96917b6

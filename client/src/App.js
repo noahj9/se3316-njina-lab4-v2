@@ -21,6 +21,7 @@ import ViewReview from './components/showReviews.js';
 import GrantAdmin from './components/grantAdmin.js';
 import UserStatus from './components/userStatus.js';
 import HideReview from './components/hideReview.js';
+import CreateDMCALog from './components/createLog.js';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -70,6 +71,7 @@ function App() {
       <GrantAdmin/>
       <UserStatus/>
       <HideReview/>
+      <CreateDMCALog/>
       </div> 
       <div class="container">
         <h3>DMCA Takedown Procedure</h3>
