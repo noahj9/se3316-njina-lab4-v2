@@ -6,6 +6,7 @@ import './App.css';
 import Search from './components/search.js';
 import Register from './components/register.js';
 import PolicyDisplay from './components/policyDisplay.js';
+import ModifyPolicy from './components/modifyPolicy.js';
 import getUserInfoFromToken from './utils/decodeToken.js';
 import Verification from './components/verification.js';
 import Login from './components/login.js';
@@ -72,6 +73,7 @@ function App() {
       <UserStatus/>
       <HideReview/>
       <CreateDMCALog/>
+      <ModifyPolicy/>
       </div> 
       <div class="container">
         <h3>DMCA Takedown Procedure</h3>

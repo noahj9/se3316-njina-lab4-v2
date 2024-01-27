@@ -930,5 +930,51 @@ app.post('/api/admin/createDMCALog', verifyToken, async (req, res) => {
   }
 });
 
+// API endpoint to modify policies
+//AI PROMPT: create me a backend api to modify policies, the api should accept the name of the policy, the new content, and save it to the database. it should check that the user is an admin in order to do use this api.
+app.put('/api/admin/modifyPolicy/:policyName', verifyToken, async (req, res) => {
+  try {
+    const policyName = req.params.policyName;
+    const { newContent } = req.body;
+
+    // Check if the policy exists
+    const policy = await PrivacyPolicies.findOne({ name: policyName });
+
+    if (!policy) {
+      return res.status(404).json({ message: 'Policy not found' });
+    }
+
+    // Check if the user is an admin
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: 'Unauthorized: Admin privileges required' });
+    }
+
+    // Update the policy content
+    policy.content = newContent;
+
+    // Save the updated policy
+    const updatedPolicy = await policy.save();
+
+    res.status(200).json(updatedPolicy);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// API endpoint to get policy names
+app.get('/api/getPolicyNames', async (req, res) => {
+  try {
+    const policyNames = await PrivacyPolicies.find()
+    .populate('name');
+    // Return the list of policy names
+    res.status(200).json(policyNames);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
 
 //AI PROMPT INFO: https://chat.openai.com/share/867025a7-b362-4a0b-9bd0-10bbb96917b6
